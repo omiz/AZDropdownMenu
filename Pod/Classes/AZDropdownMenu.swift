@@ -133,6 +133,11 @@ open class AZDropdownMenu: UIView {
     
     open var shouldDismissMenuOnDrag : Bool = false
     
+    open var isVisible: Bool {
+        guard let superview = superview else { return false }
+        return isDescendant(of: superview)
+    }
+    
     fileprivate var calcMenuHeight : CGFloat {
         get {
             return CGFloat(itemHeight * itemDataSource.count)
