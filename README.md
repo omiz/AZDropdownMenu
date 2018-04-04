@@ -1,5 +1,9 @@
 # AZDropdownMenu
 
+## Improvments:
+- Rotating the device will no longer result in a broken layout
+- 'isVisible' variable was added 
+
 [![Build Status](https://www.bitrise.io/app/1dcd88cfb9a0f14e.svg?token=-Rs7yi0wHvWCFAZzx977JA)](https://www.bitrise.io/app/1dcd88cfb9a0f14e)
 [![Version](https://img.shields.io/cocoapods/v/AZDropdownMenu.svg?style=flat)](http://cocoapods.org/pods/AZDropdownMenu)
 [![License](https://img.shields.io/cocoapods/l/AZDropdownMenu.svg?style=flat)](http://cocoapods.org/pods/AZDropdownMenu)
