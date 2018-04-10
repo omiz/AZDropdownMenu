@@ -30,8 +30,9 @@ open class AZDropdownMenu: UIView {
     /// Row height of the menu item
     open var itemHeight : Int = 44 {
         didSet {
-            let menuFrame = CGRect(origin: CGPoint(x: 0,y :0), size: CGSize(width: frame.size.width, height: menuHeight))
-            self.menuView.frame = menuFrame
+            menuView.beginUpdates()
+            menuView.rowHeight = menuHeight
+            menuView.endUpdates()
         }
     }
     
@@ -239,10 +240,8 @@ open class AZDropdownMenu: UIView {
     
     
     fileprivate func initMenu() {
-        let frame = UIScreen.main.bounds
-        let menuFrame = CGRect(origin: CGPoint(x: 0,y :0), size: CGSize(width: frame.size.width, height: menuHeight))
         
-        menuView = UITableView(frame: menuFrame, style: .plain)
+        menuView = UITableView(frame: .zero, style: .plain)
         menuView.isUserInteractionEnabled = true
         menuView.rowHeight = CGFloat(itemHeight)
         if self.reuseId == nil {
@@ -264,12 +263,14 @@ open class AZDropdownMenu: UIView {
         menuView.backgroundColor = .clear
         
         menuView.addGestureRecognizer(panGesture)
-        addSubview(menuView)
         
         menuView.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(menuView)
+        
         ["H:|-0-[subview]-0-|", "V:|-0-[subview]-0-|"].forEach { visualFormat in
             addConstraints(NSLayoutConstraint.constraints(withVisualFormat: visualFormat, options: .directionLeadingToTrailing, metrics: nil, views: ["subview": menuView]))
         }
+        menuView.layoutIfNeeded()
     }
     
     fileprivate func setupInitialLayout() {
@@ -309,6 +310,7 @@ open class AZDropdownMenu: UIView {
     open func showMenuFromView(_ view:UIView) {
         
         view.addSubview(self)
+        menuView.layoutIfNeeded()
         
         animateOvelay(overlayAlpha, interval: 0.4, completionHandler: nil)
         menuView.reloadData()
@@ -328,10 +330,6 @@ open class AZDropdownMenu: UIView {
     
     open func showMenuFromRect(_ rect:CGRect) {
         let window = UIApplication.shared.keyWindow!
-        
-        let menuFrame = CGRect(origin: CGPoint(x: 0,y :rect.origin.y), size: CGSize(width: frame.size.width, height: menuHeight))
-        
-        self.menuView.frame = menuFrame
         
         window.addSubview(self)
         
@@ -379,6 +377,7 @@ extension AZDropdownMenu: UITableViewDataSource {
             if let config = self.menuConfig {
                 cell.configureStyle(config)
             }
+            cell.frame.size.width = tableView.frame.width
             cell.configureData(item)
             cell.layoutIfNeeded()
             return cell
