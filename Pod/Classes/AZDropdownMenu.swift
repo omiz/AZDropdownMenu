@@ -340,7 +340,7 @@ open class AZDropdownMenu: UIView {
         show(in: controller.view, animated: animated, completion: completion)
     }
     
-    open func show(in view: UIView, animated: Bool = true, completion: (() -> Void) = {}) {
+    open func show(in view: UIView, animated: Bool = true, completion: @escaping (() -> Void) = {}) {
         
         view.addSubview(self)
         menuView.layoutIfNeeded()
