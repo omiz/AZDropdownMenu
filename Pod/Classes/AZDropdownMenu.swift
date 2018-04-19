@@ -341,10 +341,10 @@ open class AZDropdownMenu: UIView {
     
     open func show(in view: UIView, animated: Bool = true) {
         
-        delegate?.azDropdownMenuWillAppear?(self, animated: animated)
-        
         view.addSubview(self)
         menuView.layoutIfNeeded()
+        
+        delegate?.azDropdownMenuWillAppear?(self, animated: animated)
         
         animateOvelay(overlayAlpha, interval: 0.4, completionHandler: nil)
         menuView.reloadData()
@@ -366,11 +366,11 @@ open class AZDropdownMenu: UIView {
     
     open func show(in rect: CGRect, animated: Bool = true) {
         
+        let window = UIApplication.shared.keyWindow
+        
+        window?.addSubview(self)
+        
         delegate?.azDropdownMenuWillAppear?(self, animated: animated)
-        
-        let window = UIApplication.shared.keyWindow!
-        
-        window.addSubview(self)
         
         animateOvelay(overlayAlpha, interval: 0.4, completionHandler: nil)
         menuView.reloadData()
