@@ -90,10 +90,10 @@ class DemoViewController1: UIViewController {
     }
 
     @objc func showRightDropdown() {
-        if self.rightMenu?.isDescendant(of: self.view) == true {
-            self.rightMenu?.hideMenu()
+        if self.rightMenu?.isVisible ?? false {
+            self.rightMenu?.dismiss()
         } else {
-            self.rightMenu?.showMenuFromView(self.view)
+            self.rightMenu?.show(in: self)
         }
     }
 }
@@ -124,10 +124,10 @@ class DemoViewController2: UIViewController, UITableViewDataSource, UITableViewD
     
     @objc
     func showRightDropdown() {
-        if self.rightMenu?.isDescendant(of: self.view) == true {
-            self.rightMenu?.hideMenu()
+        if self.rightMenu?.isVisible ?? false {
+            self.rightMenu?.dismiss()
         } else {
-            self.rightMenu?.showMenuFromView(self.view)
+            self.rightMenu?.show(in: self.view)
         }
     }
 

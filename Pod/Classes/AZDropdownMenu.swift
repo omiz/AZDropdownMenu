@@ -8,6 +8,23 @@
 
 import UIKit
 
+@objc
+public protocol AZDropdownMenuDelegate {
+    
+    @objc func azDropdownMenu(_ menu: AZDropdownMenu, didSelectItemAt indexPath: IndexPath)
+    
+    @objc optional func azDropdownMenuWillAppear(_ menu: AZDropdownMenu, animated: Bool)
+    
+    @objc optional func azDropdownMenuDidAppear(_ menu: AZDropdownMenu, animated: Bool)
+    
+    @objc optional func azDropdownMenuWillDisappear(_ menu: AZDropdownMenu, animated: Bool)
+    
+    @objc optional func azDropdownMenuDidDisappear(_ menu: AZDropdownMenu, animated: Bool)
+    
+    @objc optional func azDropdownMenu(_ menu: AZDropdownMenu, shouldDismissOnSelectAt indexPath: IndexPath) -> Bool
+}
+
+@objc
 open class AZDropdownMenu: UIView {
     
     fileprivate let DROPDOWN_MENU_CELL_KEY : String = "MenuItemCell"
@@ -24,6 +41,10 @@ open class AZDropdownMenu: UIView {
     
     /// The handler used when menu item is tapped
     open var cellTapHandler : ((_ indexPath:IndexPath) -> Void)?
+    
+    open var delegate: AZDropdownMenuDelegate?
+    
+    open var animateDuration: TimeInterval = 0.3
     
     // MARK: - Configuration options
     
@@ -297,7 +318,7 @@ open class AZDropdownMenu: UIView {
     }
     
     @objc func overlayTapped() {
-        hideMenu()
+        dismiss(animated: true)
     }
     
     //MARK: - Public methods to control the menu
@@ -307,28 +328,46 @@ open class AZDropdownMenu: UIView {
      
      - parameter view: The view to be attached by the menu, ex. the controller's view
      */
-    open func showMenuFromView(_ view:UIView) {
+    
+    @available(*, deprecated: 1.1.4, renamed: "show(in:animated:)", message: "This function might be removed in later versions")
+    open func showMenuFromView(_ view: UIView, animated: Bool = true) {
+        
+        show(in: view, animated: animated)
+    }
+    
+    open func show(in controller: UIViewController, animated: Bool = true) {
+        show(in: controller.view, animated: animated)
+    }
+    
+    open func show(in view: UIView, animated: Bool = true) {
+        
+        delegate?.azDropdownMenuWillAppear?(self, animated: animated)
         
         view.addSubview(self)
         menuView.layoutIfNeeded()
         
         animateOvelay(overlayAlpha, interval: 0.4, completionHandler: nil)
         menuView.reloadData()
+        
         UIView.animate(
-            withDuration: 0.2,
+            withDuration: animated ? animateDuration : 0,
             delay:0,
             usingSpringWithDamping: 0.9,
             initialSpringVelocity: 0.6,
             options:[],
-            animations: {
-                self.frame.origin.y = view.frame.origin.y
-        }, completion: { (finished : Bool) -> Void in
-            self.initialMenuCenter = self.menuView.center
-        }
-        )
+            animations: { self.frame.origin.y = view.frame.origin.y
+        }, completion: { self.showCompletion($0, animated: animated) })
     }
     
-    open func showMenuFromRect(_ rect:CGRect) {
+    @available(*, deprecated: 1.1.4, renamed: "show(in:animated:)", message: "This function might be removed in later versions")
+    open func showMenuFromRect(_ rect:CGRect, animated: Bool = true) {
+        show(in: rect, animated: animated)
+    }
+    
+    open func show(in rect: CGRect, animated: Bool = true) {
+        
+        delegate?.azDropdownMenuWillAppear?(self, animated: animated)
+        
         let window = UIApplication.shared.keyWindow!
         
         window.addSubview(self)
@@ -343,27 +382,46 @@ open class AZDropdownMenu: UIView {
             options:[],
             animations: {
                 self.frame.origin.y = rect.origin.y
-        }, completion: { (finished : Bool) -> Void in
-            self.initialMenuCenter = self.menuView.center
-        }
-        )
+        }, completion: { self.showCompletion($0, animated: animated) })
     }
     
-    open func hideMenu() {
+    func showCompletion(_ finished: Bool = true, animated: Bool) {
+        
+        guard finished else { return }
+        
+        self.initialMenuCenter = self.menuView.center
+        
+        self.delegate?.azDropdownMenuDidAppear?(self, animated: animated)
+    }
+    
+    @available(*, deprecated: 1.1.4, renamed: "dismiss(animated:)", message: "This function might be removed in later versions")
+    open func hideMenu(_ animated: Bool = true) {
+        
+        dismiss(animated: animated)
+    }
+    
+    open func dismiss(animated: Bool = true) {
+        
+        delegate?.azDropdownMenuWillDisappear?(self, animated: animated)
         
         animateOvelay(0.0, interval: 0.1, completionHandler: nil)
         
         UIView.animate(
             withDuration: 0.3, delay: 0.1,
             options: [],
-            animations: {
-                self.frame.origin.y = -1200
-        },
-            completion: { (finished: Bool) -> Void in
-                self.menuView.center = self.initialMenuCenter
-                self.removeFromSuperview()
-        }
-        )
+            animations: { self.frame.origin.y = -UIScreen.main.bounds.height },
+            completion: { self.hideCompletion($0, animated: animated) })
+    }
+    
+    func hideCompletion(_ finished: Bool = true, animated: Bool) {
+        
+        guard finished else { return }
+        
+        menuView.center = initialMenuCenter
+        
+        removeFromSuperview()
+        
+        delegate?.azDropdownMenuDidDisappear?(self, animated: animated)
     }
 }
 
@@ -406,11 +464,16 @@ extension AZDropdownMenu: UITableViewDelegate {
     public func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath as IndexPath, animated:true)
         cellTapHandler?(indexPath as IndexPath)
+        
+        delegate?.azDropdownMenu(self, didSelectItemAt: indexPath)
+        
         if let cell = tableView.cellForRow(at: indexPath as IndexPath) {
             cell.backgroundColor = itemSelectionColor
         }
         
-        hideMenu()
+        let shouldHide = delegate?.azDropdownMenu?(self, shouldDismissOnSelectAt: indexPath) ?? true
+        
+        shouldHide ? dismiss(animated: true) : ()
     }
     
     public func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath) {
@@ -445,7 +508,7 @@ extension AZDropdownMenu: UIGestureRecognizerDelegate {
                     gestureRecognizer.setTranslation(CGPoint(x: 0,y :0), in: touchedView)
                 case .ended:
                     if touchedView.center.y < initialMenuCenter.y {
-                        hideMenu()
+                        dismiss(animated: true)
                     }
                 default:break
                 }
