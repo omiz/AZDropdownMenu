@@ -329,17 +329,18 @@ open class AZDropdownMenu: UIView {
      - parameter view: The view to be attached by the menu, ex. the controller's view
      */
     
-    @available(*, deprecated: 1.1.4, renamed: "show(in:animated:)", message: "This function might be removed in later versions")
+    @available(*, deprecated: 1.1.4, renamed: "show(in:animated:completion:)", message: "This function might be removed in later versions")
     open func showMenuFromView(_ view: UIView, animated: Bool = true) {
         
         show(in: view, animated: animated)
     }
     
-    open func show(in controller: UIViewController, animated: Bool = true) {
-        show(in: controller.view, animated: animated)
+    
+    open func show(in controller: UIViewController, animated: Bool = true, completion: @escaping (() -> Void) = {}) {
+        show(in: controller.view, animated: animated, completion: completion)
     }
     
-    open func show(in view: UIView, animated: Bool = true) {
+    open func show(in view: UIView, animated: Bool = true, completion: (() -> Void) = {}) {
         
         view.addSubview(self)
         menuView.layoutIfNeeded()
@@ -356,15 +357,15 @@ open class AZDropdownMenu: UIView {
             initialSpringVelocity: 0.6,
             options:[],
             animations: { self.frame.origin.y = view.frame.origin.y
-        }, completion: { self.showCompletion($0, animated: animated) })
+        }, completion: { self.showCompletion($0, animated: animated) ; completion() })
     }
     
-    @available(*, deprecated: 1.1.4, renamed: "show(in:animated:)", message: "This function might be removed in later versions")
+    @available(*, deprecated: 1.1.4, renamed: "show(in:animated:completion:)", message: "This function might be removed in later versions")
     open func showMenuFromRect(_ rect:CGRect, animated: Bool = true) {
         show(in: rect, animated: animated)
     }
     
-    open func show(in rect: CGRect, animated: Bool = true) {
+    open func show(in rect: CGRect, animated: Bool = true, completion: @escaping (() -> Void) = {}) {
         
         let window = UIApplication.shared.keyWindow
         
@@ -382,7 +383,7 @@ open class AZDropdownMenu: UIView {
             options:[],
             animations: {
                 self.frame.origin.y = rect.origin.y
-        }, completion: { self.showCompletion($0, animated: animated) })
+        }, completion: { self.showCompletion($0, animated: animated) ; completion() })
     }
     
     func showCompletion(_ finished: Bool = true, animated: Bool) {
@@ -394,13 +395,13 @@ open class AZDropdownMenu: UIView {
         self.delegate?.azDropdownMenuDidAppear?(self, animated: animated)
     }
     
-    @available(*, deprecated: 1.1.4, renamed: "dismiss(animated:)", message: "This function might be removed in later versions")
+    @available(*, deprecated: 1.1.4, renamed: "dismiss(animated:completion:)", message: "This function might be removed in later versions")
     open func hideMenu(_ animated: Bool = true) {
         
         dismiss(animated: animated)
     }
     
-    open func dismiss(animated: Bool = true) {
+    open func dismiss(animated: Bool = true, completion: @escaping (() -> Void) = {}) {
         
         delegate?.azDropdownMenuWillDisappear?(self, animated: animated)
         
@@ -410,7 +411,7 @@ open class AZDropdownMenu: UIView {
             withDuration: 0.3, delay: 0.1,
             options: [],
             animations: { self.frame.origin.y = -UIScreen.main.bounds.height },
-            completion: { self.hideCompletion($0, animated: animated) })
+            completion: { self.hideCompletion($0, animated: animated) ; completion() })
     }
     
     func hideCompletion(_ finished: Bool = true, animated: Bool) {
